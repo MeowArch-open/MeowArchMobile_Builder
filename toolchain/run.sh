@@ -7,7 +7,7 @@ out_host=${MEOWARCH_OUT:-$workspace/out/zorn}
 prebuilt_host=${MEOWARCH_PREBUILT:-}
 image=${MEOWARCH_TOOLCHAIN_IMAGE:-meowarch/zorn-builder:latest}
 platform=${MEOWARCH_CONTAINER_PLATFORM:-linux/arm64}
-base_image=${MEOWARCH_BASE_IMAGE:-docker.io/agners/archlinuxarm@sha256:1a4dc79f6ff52711be72889cd0e38182d7e2a6c40b257b0a08cc9b5ef9342f32}
+base_image=${MEOWARCH_BASE_IMAGE:-docker.io/agners/archlinuxarm@sha256:cd2eb76b34be8dd6ae52ba4e3531228a3a6f754f82d05fadbb30fb25036d1e05}
 proxy=${MEOWARCH_PROXY:-}
 no_proxy=${MEOWARCH_NO_PROXY:-}
 proxy_host_network=${MEOWARCH_PROXY_HOST_NETWORK:-0}
@@ -75,13 +75,12 @@ fi
 
 if [ "$platform" = linux/arm64 ] && [ "${MEOWARCH_AUTO_BINFMT:-1}" = 1 ]; then
 	if ! "$runtime" run --rm --platform "$platform" "$base_image" /bin/true >/dev/null 2>&1; then
-		echo "ARM64 binfmt is unavailable; registering qemu-aarch64 through tonistiigi/binfmt"
+		echo "warning: ARM64 probe failed; registering qemu-aarch64 through tonistiigi/binfmt" >&2
 		"$runtime" run --privileged --rm tonistiigi/binfmt:latest --install arm64
 	fi
-	"$runtime" run --rm --platform "$platform" "$base_image" /bin/true >/dev/null 2>&1 || {
-		echo "ARM64 containers still cannot execute; install/enable Docker binfmt or use --native on an ARM64 host" >&2
-		exit 1
-	}
+	if ! "$runtime" run --rm --platform "$platform" "$base_image" /bin/true >/dev/null 2>&1; then
+		echo "warning: ARM64 base-image probe still fails; continuing and letting Docker build/run report the actual error" >&2
+	fi
 fi
 
 toolchain_fingerprint=$(
