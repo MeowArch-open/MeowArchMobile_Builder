@@ -10,6 +10,7 @@ aur_work="$out/work/aur"
 artifacts="$out/artifacts"
 protected_package_dir=${MEOWARCH_PROTECTED_PACKAGE_DIR:-$workspace/protected-pkgs}
 protected_package_repo="$workspace/protected_packages"
+compat_package_dir=${MEOWARCH_COMPAT_PACKAGE_DIR:-$workspace/compat-pkgs}
 
 restore_host_ownership() {
 	if [ "$(id -u)" -eq 0 ] && [ -n "${MEOWARCH_HOST_UID:-}" ] && [ -n "${MEOWARCH_HOST_GID:-}" ]; then
@@ -58,6 +59,9 @@ rootfs_args=( \
 )
 if [ -d "$protected_package_dir" ]; then
 	rootfs_args+=(--protected-package-dir "$protected_package_dir")
+fi
+if [ -d "$compat_package_dir" ]; then
+	rootfs_args+=(--compat-package-dir "$compat_package_dir")
 fi
 "$common/scripts/build-rootfs.sh" "${rootfs_args[@]}"
 

@@ -41,6 +41,10 @@ local build input; if it is absent, the checked-out
 release assets. Set `MEOWARCH_FETCH_PROTECTED=0` to require a pre-populated
 cache instead.
 
+`compat-pkgs/` is a separate optional local cache for temporary rolling-repo
+ABI compatibility seeds. It is not part of the protected kernel/firmware
+policy and can be removed when the live repositories become coherent again.
+
 Proxy traffic uses the normal Docker bridge network by default. Pass the host's
 LAN address in `--proxy`; do not use `127.0.0.1` unless the proxy is reachable
 from the container namespace. Set `MEOWARCH_PROXY_HOST_NETWORK=1` only when the
