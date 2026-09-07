@@ -1,0 +1,29 @@
+set timeout=10
+set default=2
+set pager=0
+
+insmod part_gpt
+insmod fat
+insmod fdt
+insmod search_fs_uuid
+search --no-floppy --fs-uuid --set=root @ESP_UUID@
+
+set common="root=PARTUUID=@ROOT_PARTUUID@ rw rootwait console=tty1 earlycon=efifb loglevel=4 log_buf_len=8M clk_ignore_unused pd_ignore_unused regulator_ignore_unused panic=0"
+
+menuentry "0: simplefb, nothing experimental" {
+    devicetree /dtb/zorn.dtb
+    linux /Image $common modprobe.blacklist=msm
+    boot
+}
+
+menuentry "1: real DPU + o11 panel (drm debug)" {
+    devicetree /dtb/zorn-display.dtb
+    linux /Image $common drm.debug=0x06 deferred_probe_timeout=30
+    boot
+}
+
+menuentry "2: real DPU + o11 panel (quiet)" {
+    devicetree /dtb/zorn-display.dtb
+    linux /Image $common deferred_probe_timeout=30
+    boot
+}

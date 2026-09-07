@@ -1,0 +1,13 @@
+ARG BASE_IMAGE=docker.io/archlinuxarm/archlinuxarm:latest
+FROM ${BASE_IMAGE}
+
+COPY packages.txt /tmp/meowarch-packages.txt
+RUN pacman -Syu --noconfirm --needed $(grep -vE '^[[:space:]]*(#|$)' /tmp/meowarch-packages.txt)
+
+RUN useradd --create-home --uid 1000 --shell /bin/bash meowarch \
+    && printf 'meowarch ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/meowarch \
+    && chmod 0440 /etc/sudoers.d/meowarch
+
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+WORKDIR /workspace
