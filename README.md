@@ -36,7 +36,7 @@ From the root of a manifest checkout:
 
 ```sh
 repo sync -j8 -g default,private,uefi
-./builder/build.sh
+./builder/build.sh --proxy http://127.0.0.1:7890
 ```
 
 Useful options:
@@ -50,6 +50,7 @@ Useful options:
 --skip-rootfs         reuse out/zorn/rootfs
 --skip-esp            reuse out/zorn/esp
 --prebuilt DIR        rootfs-shaped userspace artifacts to install
+--proxy URL            host HTTP/HTTPS proxy for Docker build and container network
 --native              do not enter the bundled toolchain container
 ```
 

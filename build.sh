@@ -6,6 +6,7 @@ workspace=${MEOWARCH_WORKSPACE:-$(CDPATH= cd -- "$builder_dir/.." && pwd)}
 out=${MEOWARCH_OUT:-$workspace/out/zorn}
 jobs=${MEOWARCH_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}
 prebuilt=
+proxy=${MEOWARCH_PROXY:-}
 native=0
 skip_kernel=0
 skip_uefi=0
@@ -20,6 +21,7 @@ usage: builder/build.sh [options]
   --out DIR         output directory
   --jobs N          parallel jobs
   --prebuilt DIR    rootfs-shaped userspace artifacts
+  --proxy URL       host HTTP/HTTPS proxy for build and container network
   --skip-kernel     reuse the existing kernel/artifacts output
   --skip-uefi       reuse the existing UEFI output
   --skip-rootfs     reuse the existing rootfs output
@@ -34,6 +36,7 @@ while [ "$#" -gt 0 ]; do
 		--out) out=$2; shift 2 ;;
 		--jobs) jobs=$2; shift 2 ;;
 		--prebuilt) prebuilt=$2; shift 2 ;;
+		--proxy) proxy=$2; shift 2 ;;
 		--skip-kernel) skip_kernel=1; shift ;;
 		--skip-uefi) skip_uefi=1; shift ;;
 		--skip-rootfs) skip_rootfs=1; shift ;;
@@ -47,6 +50,7 @@ done
 if [ "${MEOWARCH_IN_TOOLCHAIN:-0}" != 1 ] && [ "$native" -eq 0 ]; then
 	args=(--workspace "$workspace" --out "$out" --jobs "$jobs")
 	[ -n "$prebuilt" ] && args+=(--prebuilt "$prebuilt")
+	[ -n "$proxy" ] && args+=(--proxy "$proxy")
 	[ "$skip_kernel" -eq 1 ] && args+=(--skip-kernel)
 	[ "$skip_uefi" -eq 1 ] && args+=(--skip-uefi)
 	[ "$skip_rootfs" -eq 1 ] && args+=(--skip-rootfs)
@@ -67,6 +71,7 @@ export MEOWARCH_WORKSPACE="$workspace"
 export MEOWARCH_OUT="$out"
 export MEOWARCH_JOBS="$jobs"
 export MEOWARCH_PREBUILT="$prebuilt"
+export MEOWARCH_PROXY="$proxy"
 
 if [ "$skip_kernel" -eq 0 ]; then
 	"$builder_dir/scripts/build-kernel.sh"
