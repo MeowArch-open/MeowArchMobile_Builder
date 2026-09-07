@@ -122,6 +122,8 @@ fi
 
 exec "$runtime" run "${run_args[@]}" \
 	-e MEOWARCH_IN_TOOLCHAIN=1 \
+	-e MEOWARCH_HOST_UID="$(id -u)" \
+	-e MEOWARCH_HOST_GID="$(id -g)" \
 	-e MEOWARCH_WORKSPACE=/workspace \
 	-e MEOWARCH_OUT="$out_container" \
 	-e MEOWARCH_PREBUILT="${prebuilt_container:-}" \

@@ -9,6 +9,13 @@ aur_out="$out/aur"
 aur_work="$out/work/aur"
 artifacts="$out/artifacts"
 
+restore_host_ownership() {
+	if [ "$(id -u)" -eq 0 ] && [ -n "${MEOWARCH_HOST_UID:-}" ] && [ -n "${MEOWARCH_HOST_GID:-}" ]; then
+		chown -R "$MEOWARCH_HOST_UID:$MEOWARCH_HOST_GID" "$out" 2>/dev/null || true
+	fi
+}
+trap restore_host_ownership EXIT
+
 [ -d "$common" ] || { echo "missing common_rootfs: $common" >&2; exit 1; }
 mkdir -p "$out/rootfs" "$out/work" "$aur_out" "$artifacts"
 
