@@ -9,11 +9,14 @@ out/zorn/
 ├── esp/ESP.img
 ├── uefi/Mu-zorn-0.img
 ├── uefi/Mu-zorn-1.img
-├── uefi/Mu-zorn-0.bin
-├── uefi/Mu-zorn-1.bin
 ├── rootfs/rootfs.img
 └── artifacts/                 compiled kernel/modules/userspace inputs
 ```
+
+If a device configuration uses Project Mu's optional `[payload]` output,
+the corresponding `Mu-*.bin` raw UEFI payloads are copied as additional
+artifacts. The zorn configuration currently uses `[boot_image]`, so its
+required UEFI outputs are the two `.img` files above.
 
 ## Toolchain policy
 

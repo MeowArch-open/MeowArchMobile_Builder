@@ -18,8 +18,16 @@ fi
 pushd "$uefi" >/dev/null
 python3 build_uefi.py -d zorn -m 0 -c
 python3 build_uefi.py -d zorn -m 1
-for artifact in Mu-zorn-0.img Mu-zorn-1.img Mu-zorn-0.bin Mu-zorn-1.bin; do
+
+# zorn.toml currently declares Android boot images.  A raw .bin is only
+# produced when the Project Mu device config declares a [payload] output.
+for artifact in Mu-zorn-0.img Mu-zorn-1.img; do
 	[ -f "$artifact" ] || { echo "UEFI artifact missing: $uefi/$artifact" >&2; exit 1; }
+	cp -f "$artifact" "$out/uefi/"
+done
+
+for artifact in Mu-zorn-0.bin Mu-zorn-1.bin; do
+	[ -f "$artifact" ] || continue
 	cp -f "$artifact" "$out/uefi/"
 done
 popd >/dev/null
