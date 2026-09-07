@@ -17,6 +17,7 @@ fi
 
 if ! "$runtime" image inspect "$image" >/dev/null 2>&1; then
 	"$runtime" build \
+		-f "$builder_dir/toolchain/Containerfile" \
 		--build-arg BASE_IMAGE="${MEOWARCH_BASE_IMAGE:-docker.io/archlinuxarm/archlinuxarm:latest}" \
 		-t "$image" "$builder_dir/toolchain"
 fi
