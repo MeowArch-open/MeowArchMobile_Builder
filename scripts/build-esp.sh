@@ -9,7 +9,13 @@ dtb_out="$esp_out/dtb"
 esp_image="$esp_out/ESP.img"
 esp_size=${MEOWARCH_ESP_SIZE_MIB:-512}
 esp_uuid=${MEOWARCH_ESP_UUID:-5BE6-B2DF}
+esp_serial=${esp_uuid//-/}
 root_partuuid=${MEOWARCH_ROOT_PARTUUID:-6fe8724f-4204-4950-b3be-30e7c2cdc7b2}
+
+[[ "$esp_serial" =~ ^[[:xdigit:]]{8}$ ]] || {
+	echo "invalid ESP UUID for mformat -N: $esp_uuid (expected 8 hex digits, optionally XXXX-XXXX)" >&2
+	exit 1
+}
 
 [ -f "$out/kernel/Image" ] || { echo "missing kernel Image: $out/kernel/Image" >&2; exit 1; }
 mkdir -p "$dtb_out"
@@ -52,7 +58,7 @@ else
 fi
 
 truncate -s "${esp_size}M" "$esp_image"
-mformat -i "$esp_image" -F -v ESP -N "$esp_uuid" ::
+mformat -i "$esp_image" -F -v ESP -N "$esp_serial" ::
 for dir in EFI EFI/BOOT dtb boot boot/grub loader loader/entries; do
 	mmd -i "$esp_image" "::$dir"
 done
