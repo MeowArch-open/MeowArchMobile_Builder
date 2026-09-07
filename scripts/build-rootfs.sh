@@ -22,6 +22,9 @@ mkdir -p "$out/rootfs" "$out/work" "$aur_out" "$artifacts"
 if [ ! -f "$aur_out/.complete" ] || [ "${MEOWARCH_REBUILD_AUR:-0}" = 1 ]; then
 	if [ "$(id -u)" -eq 0 ]; then
 		if id meowarch >/dev/null 2>&1; then
+			# The output directories above were created by root.  AUR recipes
+			# must run as meowarch and copy their packages into aur_out.
+			chown -R meowarch:meowarch "$aur_out" "$aur_work"
 			runuser -u meowarch -- env \
 				AUR_OUT="$aur_out" AUR_WORKDIR="$aur_work" \
 				"$common/scripts/build-aur.sh"
