@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+builder_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 workspace=${MEOWARCH_WORKSPACE:?}
 out=${MEOWARCH_OUT:?}
 common="$workspace/common_rootfs"
@@ -45,6 +46,9 @@ if [ -n "${MEOWARCH_PREBUILT:-}" ]; then
 	[ -d "$MEOWARCH_PREBUILT" ] || { echo "missing prebuilt artifacts: $MEOWARCH_PREBUILT" >&2; exit 1; }
 	rsync -a "$MEOWARCH_PREBUILT"/ "$artifacts"/
 fi
+
+MEOWARCH_USERSPACE_ARTIFACTS="$artifacts" \
+	"$builder_dir/scripts/build-userspace.sh"
 
 if [ -x "$protected_package_repo/fetch.sh" ] && [ "${MEOWARCH_FETCH_PROTECTED:-1}" = 1 ]; then
 	"$protected_package_repo/fetch.sh" --out "$protected_package_dir"

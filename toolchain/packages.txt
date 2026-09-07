@@ -23,9 +23,11 @@ libqrtr-glib
 libtool
 llvm
 lld
+libnl
 make
 meson
 mtools
+ninja
 nasm
 openssl
 patch

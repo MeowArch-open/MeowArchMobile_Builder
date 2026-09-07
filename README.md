@@ -96,8 +96,9 @@ build input and is not part of the public source repositories.
    and builds the qcomtee out-of-tree module.
 2. `build-uefi.sh` invokes Project Mu for zorn models 0 and 1. The nested UEFI
    projects are supplied by the manifest, not by the broken old submodule URL.
-3. `build-rootfs.sh` invokes the common_rootfs package/AUR assembly and makes
-   an ext4 `rootfs.img`. `--prebuilt` supplies userspace binaries whose source
+3. `build-rootfs.sh` first reuses or builds the target userspace daemons from
+   the subsystem sources, then invokes the common_rootfs package/AUR assembly
+   and makes an ext4 `rootfs.img`. `--prebuilt` supplies binaries whose source
    is not currently present in the component repositories.
 4. `build-esp.sh` compiles the selected DTS files, creates an ARM64 GRUB
    `BOOTAA64.EFI`, and creates a FAT32 `ESP.img` containing `/Image`, `/dtb`,
@@ -105,10 +106,10 @@ build input and is not part of the public source repositories.
 
 ## Required userspace artifacts
 
-The current public source split does not yet contain source for every binary
-that the device services reference, notably `rmtfs`, the production Mink
-daemon, and several zorn helper daemons. The builder therefore accepts a
-rootfs-shaped artifact directory instead of copying binaries from the device:
+The builder compiles the available C sources automatically in the ARM64
+builder container. `rmtfs` is supplied by the pinned public `linux-msm/rmtfs`
+manifest project. A rootfs-shaped `prebuilt/` directory can still override or
+fill any binary whose source build is unavailable:
 
 ```text
 prebuilt/
