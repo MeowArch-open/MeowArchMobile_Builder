@@ -17,8 +17,9 @@ out/zorn/
 
 ## Toolchain policy
 
-`build.sh` uses `toolchain/run.sh` by default. That builds/runs an Arch Linux
-ARM container described by `toolchain/Containerfile`, so the host's compiler,
+`build.sh` uses `toolchain/run.sh` by default. That builds/runs a pinned Arch
+Linux ARM container (`agners/archlinuxarm`, ARM64 digest) described by
+`toolchain/Containerfile`, so the host's compiler,
 pacman, dtc, mkfs, GRUB and Python packages are not used as the build toolchain.
 The only host dependency is a container runtime (`podman` or `docker`) capable
 of running an ARM64 container. Set `MEOWARCH_TOOLCHAIN_IMAGE` to use a local

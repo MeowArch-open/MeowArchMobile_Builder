@@ -19,7 +19,7 @@ if ! "$runtime" image inspect "$image" >/dev/null 2>&1; then
 	"$runtime" build \
 		-f "$builder_dir/toolchain/Containerfile" \
 		--platform "${MEOWARCH_CONTAINER_PLATFORM:-linux/arm64}" \
-		--build-arg BASE_IMAGE="${MEOWARCH_BASE_IMAGE:-docker.io/archlinuxarm/archlinuxarm:latest}" \
+		--build-arg BASE_IMAGE="${MEOWARCH_BASE_IMAGE:-docker.io/agners/archlinuxarm@sha256:1a4dc79f6ff52711be72889cd0e38182d7e2a6c40b257b0a08cc9b5ef9342f32}" \
 		-t "$image" "$builder_dir/toolchain"
 fi
 
