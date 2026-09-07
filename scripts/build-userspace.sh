@@ -138,7 +138,10 @@ build_fastrpc() {
   install_bin "$work/fastrpc-audiopd" fastrpc-audiopd
 }
 
-build_qrtr
+if ! have pd-mapper || ! have tqftpserv || ! have rmtfs || \
+   ! have zorn-qmiprobe || ! have zorn-wds || ! have zorn-minkd; then
+  build_qrtr
+fi
 build_fastrpc
 build_hostapd
 build_pd_mapper
