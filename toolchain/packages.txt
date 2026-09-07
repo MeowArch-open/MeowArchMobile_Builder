@@ -12,6 +12,7 @@ fakeroot
 flex
 gawk
 gcc
+go
 git
 grub
 gzip

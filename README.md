@@ -29,6 +29,9 @@ Only the rootfs/AUR stage uses the ARM64 Arch container, because package build
 scripts may execute target binaries. On an x86 Docker host, the wrapper
 registers `qemu-aarch64` through `tonistiigi/binfmt` when needed.
 
+The container image is rebuilt automatically when its Containerfile or package
+set changes. Set `MEOWARCH_REBUILD_IMAGE=1` to force a rebuild.
+
 Proxy traffic uses the normal Docker bridge network by default. Pass the host's
 LAN address in `--proxy`; do not use `127.0.0.1` unless the proxy is reachable
 from the container namespace. Set `MEOWARCH_PROXY_HOST_NETWORK=1` only when the

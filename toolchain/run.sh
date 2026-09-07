@@ -84,8 +84,17 @@ if [ "$platform" = linux/arm64 ] && [ "${MEOWARCH_AUTO_BINFMT:-1}" = 1 ]; then
 	}
 fi
 
+toolchain_fingerprint=$(
+	{
+		printf 'platform=%s\nbase_image=%s\n' "$platform" "$base_image"
+		sha256sum "$builder_dir/toolchain/Containerfile" "$builder_dir/toolchain/packages.txt"
+	} | sha256sum | awk '{print $1}'
+)
 image_arch=$("$runtime" image inspect --format '{{.Architecture}}' "$image" 2>/dev/null || true)
-if [ "$image_arch" != arm64 ] && [ "$image_arch" != aarch64 ]; then
+image_fingerprint=$("$runtime" image inspect --format '{{ index .Config.Labels "org.meowarch.toolchain-fingerprint" }}' "$image" 2>/dev/null || true)
+if [ "${MEOWARCH_REBUILD_IMAGE:-0}" = 1 ] || {
+	[ "$image_arch" != arm64 ] && [ "$image_arch" != aarch64 ]
+} || [ "$image_fingerprint" != "$toolchain_fingerprint" ]; then
 	build_network_args=()
 	build_proxy_args=()
 	if [ -n "$proxy" ]; then
@@ -99,6 +108,7 @@ if [ "$image_arch" != arm64 ] && [ "$image_arch" != aarch64 ]; then
 		-f "$builder_dir/toolchain/Containerfile" \
 		--platform "$platform" \
 		--build-arg BASE_IMAGE="$base_image" \
+		--label "org.meowarch.toolchain-fingerprint=$toolchain_fingerprint" \
 		"${build_network_args[@]}" "${build_proxy_args[@]}" \
 		-t "$image" "$builder_dir/toolchain"
 fi
