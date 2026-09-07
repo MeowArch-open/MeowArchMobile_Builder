@@ -73,6 +73,12 @@ esac
 [ -d "$workspace/common_rootfs" ] || { echo "missing manifest project: $workspace/common_rootfs" >&2; exit 1; }
 mkdir -p "$out"
 
+if [ "${MEOWARCH_IN_TOOLCHAIN:-0}" = 1 ]; then
+	for project in kernel common display audio touch modem wifi common_rootfs builder uefi/Project_Mu; do
+		git config --global --add safe.directory "$workspace/$project" 2>/dev/null || true
+	done
+fi
+
 if [ "$skip_kernel" -eq 0 ]; then
 	"$builder_dir/scripts/build-kernel.sh"
 fi

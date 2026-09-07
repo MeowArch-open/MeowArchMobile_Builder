@@ -44,6 +44,9 @@ repo sync -j8 -g default,private,uefi
 ./builder/build.sh --proxy http://192.168.1.100:7890
 ```
 
+In fish, remove an old host-network override with
+`set -e MEOWARCH_PROXY_HOST_NETWORK`; bash uses `unset MEOWARCH_PROXY_HOST_NETWORK`.
+
 Useful options:
 
 ```text
