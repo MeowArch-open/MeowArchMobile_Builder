@@ -50,6 +50,10 @@ while [ "$#" -gt 0 ]; do
 	esac
 done
 
+if [ -z "$prebuilt" ] && [ -d "$workspace/prebuilt" ]; then
+	prebuilt="$workspace/prebuilt"
+fi
+
 clean_outputs() {
 	local target
 	local kernel_work="$out/work/kernel"

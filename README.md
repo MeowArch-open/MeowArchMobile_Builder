@@ -84,6 +84,10 @@ Useful options:
 --native              do not enter the bundled toolchain container
 ```
 
+If `prebuilt/` exists at the manifest workspace root, it is used
+automatically as the userspace artifact directory. This directory is local
+build input and is not part of the public source repositories.
+
 ## Build stages
 
 1. `build-kernel.sh` creates a detached worktree from the locked Kernel
