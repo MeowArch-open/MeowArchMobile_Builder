@@ -22,8 +22,10 @@ Linux ARM container (`agners/archlinuxarm`, ARM64 digest) described by
 `toolchain/Containerfile`, so the host's compiler,
 pacman, dtc, mkfs, GRUB and Python packages are not used as the build toolchain.
 The only host dependency is a container runtime (`podman` or `docker`) capable
-of running an ARM64 container. Set `MEOWARCH_TOOLCHAIN_IMAGE` to use a local
-Arch ARM image mirror.
+of running an ARM64 container. On an x86 Docker host, the wrapper automatically
+registers `qemu-aarch64` through `tonistiigi/binfmt` using a privileged helper
+container. Set `MEOWARCH_AUTO_BINFMT=0` to disable that behavior, or set
+`MEOWARCH_TOOLCHAIN_IMAGE`/`MEOWARCH_BASE_IMAGE` to use local image mirrors.
 
 For an already prepared Arch ARM build environment, `--native` skips the
 container wrapper. This is an explicit escape hatch, not the default.

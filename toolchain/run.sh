@@ -4,6 +4,8 @@ set -euo pipefail
 builder_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 workspace=${MEOWARCH_WORKSPACE:-$(CDPATH= cd -- "$builder_dir/.." && pwd)}
 image=${MEOWARCH_TOOLCHAIN_IMAGE:-meowarch/zorn-builder:latest}
+platform=${MEOWARCH_CONTAINER_PLATFORM:-linux/arm64}
+base_image=${MEOWARCH_BASE_IMAGE:-docker.io/agners/archlinuxarm@sha256:1a4dc79f6ff52711be72889cd0e38182d7e2a6c40b257b0a08cc9b5ef9342f32}
 
 runtime=${MEOWARCH_CONTAINER_RUNTIME:-}
 if [ -z "$runtime" ]; then
@@ -15,16 +17,28 @@ if [ -z "$runtime" ]; then
 	fi
 fi
 
-if ! "$runtime" image inspect "$image" >/dev/null 2>&1; then
+if [ "$platform" = linux/arm64 ] && [ "${MEOWARCH_AUTO_BINFMT:-1}" = 1 ]; then
+	if ! "$runtime" run --rm --platform "$platform" "$base_image" /bin/true >/dev/null 2>&1; then
+		echo "ARM64 binfmt is unavailable; registering qemu-aarch64 through tonistiigi/binfmt"
+		"$runtime" run --privileged --rm tonistiigi/binfmt:latest --install arm64
+	fi
+	"$runtime" run --rm --platform "$platform" "$base_image" /bin/true >/dev/null 2>&1 || {
+		echo "ARM64 containers still cannot execute; install/enable Docker binfmt or use --native on an ARM64 host" >&2
+		exit 1
+	}
+fi
+
+image_arch=$("$runtime" image inspect --format '{{.Architecture}}' "$image" 2>/dev/null || true)
+if [ "$image_arch" != arm64 ] && [ "$image_arch" != aarch64 ]; then
 	"$runtime" build \
 		-f "$builder_dir/toolchain/Containerfile" \
-		--platform "${MEOWARCH_CONTAINER_PLATFORM:-linux/arm64}" \
-		--build-arg BASE_IMAGE="${MEOWARCH_BASE_IMAGE:-docker.io/agners/archlinuxarm@sha256:1a4dc79f6ff52711be72889cd0e38182d7e2a6c40b257b0a08cc9b5ef9342f32}" \
+		--platform "$platform" \
+		--build-arg BASE_IMAGE="$base_image" \
 		-t "$image" "$builder_dir/toolchain"
 fi
 
 exec "$runtime" run --rm -it \
-	--platform "${MEOWARCH_CONTAINER_PLATFORM:-linux/arm64}" \
+	--platform "$platform" \
 	-e MEOWARCH_IN_TOOLCHAIN=1 \
 	-e MEOWARCH_WORKSPACE=/workspace \
 	-e MEOWARCH_OUT="${MEOWARCH_OUT_CONTAINER:-/workspace/out/zorn}" \
