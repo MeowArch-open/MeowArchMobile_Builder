@@ -36,7 +36,10 @@ For this zorn release, the live Arch ARM mirror no longer carries the exact
 kernel/firmware versions recorded by the device. Put device-captured package
 files in `protected-pkgs/` at the manifest workspace root. The rootfs stage
 installs and verifies those files before resolving ordinary packages. This is
-local build input and is intentionally not part of the Builder repository.
+local build input; if it is absent, the checked-out
+`MeowArchMobile_ProtectedPackages/fetch.sh` downloads and verifies the pinned
+release assets. Set `MEOWARCH_FETCH_PROTECTED=0` to require a pre-populated
+cache instead.
 
 Proxy traffic uses the normal Docker bridge network by default. Pass the host's
 LAN address in `--proxy`; do not use `127.0.0.1` unless the proxy is reachable

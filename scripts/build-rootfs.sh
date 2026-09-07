@@ -9,6 +9,7 @@ aur_out="$out/aur"
 aur_work="$out/work/aur"
 artifacts="$out/artifacts"
 protected_package_dir=${MEOWARCH_PROTECTED_PACKAGE_DIR:-$workspace/protected-pkgs}
+protected_package_repo="$workspace/protected_packages"
 
 restore_host_ownership() {
 	if [ "$(id -u)" -eq 0 ] && [ -n "${MEOWARCH_HOST_UID:-}" ] && [ -n "${MEOWARCH_HOST_GID:-}" ]; then
@@ -42,6 +43,10 @@ fi
 if [ -n "${MEOWARCH_PREBUILT:-}" ]; then
 	[ -d "$MEOWARCH_PREBUILT" ] || { echo "missing prebuilt artifacts: $MEOWARCH_PREBUILT" >&2; exit 1; }
 	rsync -a "$MEOWARCH_PREBUILT"/ "$artifacts"/
+fi
+
+if [ -x "$protected_package_repo/fetch.sh" ] && [ "${MEOWARCH_FETCH_PROTECTED:-1}" = 1 ]; then
+	"$protected_package_repo/fetch.sh" --out "$protected_package_dir"
 fi
 
 rootfs_args=( \

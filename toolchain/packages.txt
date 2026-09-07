@@ -5,6 +5,7 @@ bison
 clang
 cmake
 cpio
+curl
 dtc
 dosfstools
 e2fsprogs
