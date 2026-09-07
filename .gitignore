@@ -3,3 +3,4 @@
 *.img
 *.bin
 *.efi
+!prebuilt/grub/BOOTAA64.EFI

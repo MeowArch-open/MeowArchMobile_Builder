@@ -36,12 +36,20 @@ sed \
 	"$builder_dir/config/zorn/grub.cfg.in" >"$grub_cfg"
 
 bootaa64="$esp_out/BOOTAA64.EFI"
-grub-mkstandalone \
-	-O arm64-efi \
-	-o "$bootaa64" \
-	--disable-shim-lock \
-	--modules="part_gpt fat fdt search_fs_uuid normal configfile linux echo" \
-	"boot/grub/grub.cfg=$grub_cfg"
+prebuilt_grub="$builder_dir/prebuilt/grub/BOOTAA64.EFI"
+if [ -f "$prebuilt_grub" ]; then
+	# The bundled image was extracted from the physical zorn ESP and contains
+	# the arm64-efi GRUB target missing from the host Arch grub package.  The
+	# current menu remains external at /EFI/BOOT/grub.cfg.
+	cp -f "$prebuilt_grub" "$bootaa64"
+else
+	grub-mkstandalone \
+		-O arm64-efi \
+		-o "$bootaa64" \
+		--disable-shim-lock \
+		--modules="part_gpt fat fdt search_fs_uuid normal configfile linux echo" \
+		"boot/grub/grub.cfg=$grub_cfg"
+fi
 
 truncate -s "${esp_size}M" "$esp_image"
 mformat -i "$esp_image" -F -v ESP -N "$esp_uuid" ::

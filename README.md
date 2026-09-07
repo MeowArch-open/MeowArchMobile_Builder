@@ -104,6 +104,11 @@ build input and is not part of the public source repositories.
    `BOOTAA64.EFI`, and creates a FAT32 `ESP.img` containing `/Image`, `/dtb`,
    and the current zorn GRUB menu.
 
+The current host Arch GRUB package does not ship the `arm64-efi` module tree.
+The Builder therefore carries the known-good ARM64 `BOOTAA64.EFI` extracted
+from the physical zorn ESP as `prebuilt/grub/BOOTAA64.EFI`; the menu and DTBs
+are still regenerated from the current Builder/component sources.
+
 ## Required userspace artifacts
 
 The builder compiles the available C sources automatically in the ARM64
