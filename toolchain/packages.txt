@@ -31,7 +31,6 @@ perl
 pkgconf
 python
 python-pip
-qemu-user-static
 rsync
 sudo
 systemd
