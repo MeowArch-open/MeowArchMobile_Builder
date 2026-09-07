@@ -27,6 +27,11 @@ registers `qemu-aarch64` through `tonistiigi/binfmt` using a privileged helper
 container. Set `MEOWARCH_AUTO_BINFMT=0` to disable that behavior, or set
 `MEOWARCH_TOOLCHAIN_IMAGE`/`MEOWARCH_BASE_IMAGE` to use local image mirrors.
 
+Proxy traffic uses the normal Docker bridge network by default. Pass the host's
+LAN address in `--proxy`; do not use `127.0.0.1` unless the proxy is reachable
+from the container namespace. Set `MEOWARCH_PROXY_HOST_NETWORK=1` only when the
+host-network mode is known to work with the local Docker setup.
+
 For an already prepared Arch ARM build environment, `--native` skips the
 container wrapper. This is an explicit escape hatch, not the default.
 
@@ -36,7 +41,7 @@ From the root of a manifest checkout:
 
 ```sh
 repo sync -j8 -g default,private,uefi
-./builder/build.sh --proxy http://127.0.0.1:7890
+./builder/build.sh --proxy http://192.168.1.100:7890
 ```
 
 Useful options:
@@ -50,7 +55,7 @@ Useful options:
 --skip-rootfs         reuse out/zorn/rootfs
 --skip-esp            reuse out/zorn/esp
 --prebuilt DIR        rootfs-shaped userspace artifacts to install
---proxy URL            host HTTP/HTTPS proxy for Docker build and container network
+--proxy URL            host LAN HTTP/HTTPS proxy for Docker build and container network
 --native              do not enter the bundled toolchain container
 ```
 

@@ -8,7 +8,7 @@ platform=${MEOWARCH_CONTAINER_PLATFORM:-linux/arm64}
 base_image=${MEOWARCH_BASE_IMAGE:-docker.io/agners/archlinuxarm@sha256:cd2eb76b34be8dd6ae52ba4e3531228a3a6f754f82d05fadbb30fb25036d1e05}
 proxy=${MEOWARCH_PROXY:-}
 no_proxy=${MEOWARCH_NO_PROXY:-}
-proxy_host_network=${MEOWARCH_PROXY_HOST_NETWORK:-1}
+proxy_host_network=${MEOWARCH_PROXY_HOST_NETWORK:-0}
 
 runtime=${MEOWARCH_CONTAINER_RUNTIME:-}
 if [ -z "$runtime" ]; then
