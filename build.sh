@@ -52,6 +52,10 @@ export MEOWARCH_OUT="$out"
 export MEOWARCH_JOBS="$jobs"
 export MEOWARCH_PREBUILT="$prebuilt"
 export MEOWARCH_PROXY="$proxy"
+if [ -n "$proxy" ]; then
+	export HTTP_PROXY="$proxy" HTTPS_PROXY="$proxy" ALL_PROXY="$proxy"
+	export http_proxy="$proxy" https_proxy="$proxy" all_proxy="$proxy"
+fi
 
 if [ "${MEOWARCH_IN_TOOLCHAIN:-0}" != 1 ] && [ "$native" -eq 0 ]; then
 	[ -x "$workspace/toolchain/fetch.sh" ] || { echo "missing host toolchain project: $workspace/toolchain" >&2; exit 1; }

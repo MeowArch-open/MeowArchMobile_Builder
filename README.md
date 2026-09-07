@@ -58,7 +58,8 @@ Useful options:
 --skip-rootfs         reuse out/zorn/rootfs
 --skip-esp            reuse out/zorn/esp
 --prebuilt DIR        rootfs-shaped userspace artifacts to install
---proxy URL            host LAN HTTP/HTTPS proxy for Docker build and container network
+--proxy URL            host LAN HTTP/HTTPS proxy for toolchain fetch, UEFI pip,
+                       Docker build and rootfs container network
 --native              do not enter the bundled toolchain container
 ```
 
