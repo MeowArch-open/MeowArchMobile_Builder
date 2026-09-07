@@ -5,7 +5,7 @@ builder_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 workspace=${MEOWARCH_WORKSPACE:-$(CDPATH= cd -- "$builder_dir/.." && pwd)}
 image=${MEOWARCH_TOOLCHAIN_IMAGE:-meowarch/zorn-builder:latest}
 platform=${MEOWARCH_CONTAINER_PLATFORM:-linux/arm64}
-base_image=${MEOWARCH_BASE_IMAGE:-docker.io/agners/archlinuxarm@sha256:1a4dc79f6ff52711be72889cd0e38182d7e2a6c40b257b0a08cc9b5ef9342f32}
+base_image=${MEOWARCH_BASE_IMAGE:-docker.io/agners/archlinuxarm@sha256:cd2eb76b34be8dd6ae52ba4e3531228a3a6f754f82d05fadbb30fb25036d1e05}
 
 runtime=${MEOWARCH_CONTAINER_RUNTIME:-}
 if [ -z "$runtime" ]; then

@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=docker.io/agners/archlinuxarm@sha256:1a4dc79f6ff52711be72889cd0e38182d7e2a6c40b257b0a08cc9b5ef9342f32
+ARG BASE_IMAGE=docker.io/agners/archlinuxarm@sha256:cd2eb76b34be8dd6ae52ba4e3531228a3a6f754f82d05fadbb30fb25036d1e05
 FROM ${BASE_IMAGE}
 
 COPY packages.txt /tmp/meowarch-packages.txt
