@@ -60,6 +60,8 @@ Useful options:
 --prebuilt DIR        rootfs-shaped userspace artifacts to install
 --proxy URL            host LAN HTTP/HTTPS proxy for toolchain fetch, UEFI pip,
                        Docker build and rootfs container network
+--clean                remove Builder output/cache and Project Mu generated files,
+                       then rebuild
 --native              do not enter the bundled toolchain container
 ```
 

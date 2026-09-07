@@ -12,6 +12,7 @@ skip_kernel=0
 skip_uefi=0
 skip_rootfs=0
 skip_esp=0
+clean=0
 
 usage() {
 	cat <<'EOF'
@@ -26,6 +27,7 @@ usage: builder/build.sh [options]
   --skip-uefi       reuse the existing UEFI output
   --skip-rootfs     reuse the existing rootfs output
   --skip-esp        reuse the existing ESP output
+  --clean           remove all Builder outputs, then rebuild
   --native          do not enter the bundled toolchain container
 EOF
 }
@@ -41,11 +43,53 @@ while [ "$#" -gt 0 ]; do
 		--skip-uefi) skip_uefi=1; shift ;;
 		--skip-rootfs) skip_rootfs=1; shift ;;
 		--skip-esp) skip_esp=1; shift ;;
+		--clean) clean=1; shift ;;
 		--native) native=1; shift ;;
 		-h|--help) usage; exit 0 ;;
 		*) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
 	esac
 done
+
+clean_outputs() {
+	local target
+	local kernel_work="$out/work/kernel"
+	if [ -d "$kernel_work" ] && [ -d "$workspace/kernel/.git" -o -f "$workspace/kernel/.git" ]; then
+		git -C "$workspace/kernel" -c safe.directory="$workspace/kernel" \
+			worktree remove --force "$kernel_work" 2>/dev/null || {
+			echo "cannot remove kernel worktree; fix ownership or remove it manually: $kernel_work" >&2
+			exit 1
+		}
+	fi
+
+	for target in \
+		"$out" \
+		"$workspace/uefi/Project_Mu/Build" \
+		"$workspace/uefi/Project_Mu/BootShim/BootShim.elf" \
+		"$workspace/uefi/Project_Mu/BootShim/BootShim.bin" \
+		"$workspace/uefi/Project_Mu/Mu-zorn-0.img" \
+		"$workspace/uefi/Project_Mu/Mu-zorn-1.img" \
+		"$workspace/uefi/Project_Mu/Mu-zorn-0.bin" \
+		"$workspace/uefi/Project_Mu/Mu-zorn-1.bin"; do
+		[ -e "$target" ] || [ -L "$target" ] || continue
+		case "$target" in
+			"$out"|"$workspace/uefi/Project_Mu/Build"|"$workspace/uefi/Project_Mu/BootShim/BootShim.elf"|"$workspace/uefi/Project_Mu/BootShim/BootShim.bin"|"$workspace/uefi/Project_Mu/Mu-zorn-0.img"|"$workspace/uefi/Project_Mu/Mu-zorn-1.img"|"$workspace/uefi/Project_Mu/Mu-zorn-0.bin"|"$workspace/uefi/Project_Mu/Mu-zorn-1.bin") ;;
+			*) echo "refusing unexpected clean target: $target" >&2; exit 1 ;;
+		esac
+		printf '%s\n' "clean: $target"
+		rm -rf -- "$target"
+	done
+}
+
+if [ "$clean" -eq 1 ]; then
+	case "$out" in
+		''|/|/tmp|/home|/root|/run|/run/media)
+			echo "refusing unsafe clean output path: $out" >&2
+			exit 1
+			;;
+	esac
+	[ "$out" != "$workspace" ] || { echo "refusing to clean the workspace itself" >&2; exit 1; }
+	clean_outputs
+fi
 
 export MEOWARCH_WORKSPACE="$workspace"
 export MEOWARCH_OUT="$out"
