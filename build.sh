@@ -47,8 +47,14 @@ while [ "$#" -gt 0 ]; do
 	esac
 done
 
+export MEOWARCH_WORKSPACE="$workspace"
+export MEOWARCH_OUT="$out"
+export MEOWARCH_JOBS="$jobs"
+export MEOWARCH_PREBUILT="$prebuilt"
+export MEOWARCH_PROXY="$proxy"
+
 if [ "${MEOWARCH_IN_TOOLCHAIN:-0}" != 1 ] && [ "$native" -eq 0 ]; then
-	args=(--workspace "$workspace" --out "$out" --jobs "$jobs")
+	args=(--jobs "$jobs")
 	[ -n "$prebuilt" ] && args+=(--prebuilt "$prebuilt")
 	[ -n "$proxy" ] && args+=(--proxy "$proxy")
 	[ "$skip_kernel" -eq 1 ] && args+=(--skip-kernel)
@@ -66,12 +72,6 @@ esac
 [ -d "$workspace/kernel" ] || { echo "missing manifest project: $workspace/kernel" >&2; exit 1; }
 [ -d "$workspace/common_rootfs" ] || { echo "missing manifest project: $workspace/common_rootfs" >&2; exit 1; }
 mkdir -p "$out"
-
-export MEOWARCH_WORKSPACE="$workspace"
-export MEOWARCH_OUT="$out"
-export MEOWARCH_JOBS="$jobs"
-export MEOWARCH_PREBUILT="$prebuilt"
-export MEOWARCH_PROXY="$proxy"
 
 if [ "$skip_kernel" -eq 0 ]; then
 	"$builder_dir/scripts/build-kernel.sh"
