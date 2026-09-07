@@ -8,6 +8,7 @@ rootfs="$out/rootfs/tree"
 aur_out="$out/aur"
 aur_work="$out/work/aur"
 artifacts="$out/artifacts"
+protected_package_dir=${MEOWARCH_PROTECTED_PACKAGE_DIR:-$workspace/protected-pkgs}
 
 restore_host_ownership() {
 	if [ "$(id -u)" -eq 0 ] && [ -n "${MEOWARCH_HOST_UID:-}" ] && [ -n "${MEOWARCH_HOST_GID:-}" ]; then
@@ -43,12 +44,17 @@ if [ -n "${MEOWARCH_PREBUILT:-}" ]; then
 	rsync -a "$MEOWARCH_PREBUILT"/ "$artifacts"/
 fi
 
-"$common/scripts/build-rootfs.sh" \
+rootfs_args=( \
 	--root "$rootfs" \
 	--pacman-conf "${MEOWARCH_PACMAN_CONF:-/etc/pacman.conf}" \
 	--aur-dir "$aur_out" \
 	--components "$workspace" \
 	--artifacts "$artifacts"
+)
+if [ -d "$protected_package_dir" ]; then
+	rootfs_args+=(--protected-package-dir "$protected_package_dir")
+fi
+"$common/scripts/build-rootfs.sh" "${rootfs_args[@]}"
 
 required=(
 	/usr/local/sbin/fastrpc-audiopd
