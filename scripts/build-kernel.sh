@@ -5,6 +5,7 @@ builder_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 workspace=${MEOWARCH_WORKSPACE:?}
 out=${MEOWARCH_OUT:?}
 jobs=${MEOWARCH_JOBS:-1}
+cross_compile=${CROSS_COMPILE:-aarch64-linux-gnu-}
 kernel_src="$workspace/kernel"
 kernel_work="$out/work/kernel"
 artifacts="$out/artifacts"
@@ -44,15 +45,15 @@ for component in display audio touch modem; do
 done
 
 if [ ! -e "$kernel_work/.meowarch-configured" ]; then
-	make -C "$kernel_work" ARCH=arm64 LLVM=1 defconfig
+	make -C "$kernel_work" ARCH=arm64 LLVM=1 CROSS_COMPILE="$cross_compile" defconfig
 	"$kernel_work/scripts/kconfig/merge_config.sh" -m \
 		"$kernel_work/.config" "$builder_dir/config/zorn/kernel.fragment"
-	make -C "$kernel_work" ARCH=arm64 LLVM=1 olddefconfig
+	make -C "$kernel_work" ARCH=arm64 LLVM=1 CROSS_COMPILE="$cross_compile" olddefconfig
 	touch "$kernel_work/.meowarch-configured"
 fi
 
-make -C "$kernel_work" ARCH=arm64 LLVM=1 -j"$jobs" Image modules
-make -C "$kernel_work" ARCH=arm64 LLVM=1 \
+make -C "$kernel_work" ARCH=arm64 LLVM=1 CROSS_COMPILE="$cross_compile" -j"$jobs" Image modules
+make -C "$kernel_work" ARCH=arm64 LLVM=1 CROSS_COMPILE="$cross_compile" \
 	INSTALL_MOD_PATH="$artifacts/usr" INSTALL_MOD_STRIP=1 modules_install
 
 qcomtee_src="$workspace/modem/source/qcomtee-oot"
@@ -62,11 +63,11 @@ if [ -d "$qcomtee_src" ]; then
 		mkdir -p "$qcomtee_work"
 		cp -a "$qcomtee_src"/. "$qcomtee_work/"
 	fi
-	make -C "$kernel_work" ARCH=arm64 LLVM=1 M="$qcomtee_work" modules
+	make -C "$kernel_work" ARCH=arm64 LLVM=1 CROSS_COMPILE="$cross_compile" M="$qcomtee_work" modules
 	install -D -m 0644 "$qcomtee_work/qcomtee.ko" "$artifacts/usr/local/lib/zorn/qcomtee.ko"
 fi
 
 cp "$kernel_work/arch/arm64/boot/Image" "$out/kernel/Image"
 cp "$kernel_work/.config" "$out/kernel/config"
-printf '%s\n' "$(make -s -C "$kernel_work" ARCH=arm64 kernelrelease)" >"$out/kernel/release"
+printf '%s\n' "$(make -s -C "$kernel_work" ARCH=arm64 CROSS_COMPILE="$cross_compile" kernelrelease)" >"$out/kernel/release"
 printf '%s\n' "kernel artifacts: $out/kernel and $artifacts/usr"

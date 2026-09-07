@@ -12,6 +12,7 @@ proxy=${MEOWARCH_PROXY:-}
 no_proxy=${MEOWARCH_NO_PROXY:-}
 proxy_host_network=${MEOWARCH_PROXY_HOST_NETWORK:-0}
 forward_args=()
+rootfs_only=0
 
 while [ "$#" -gt 0 ]; do
 	case "$1" in
@@ -19,6 +20,7 @@ while [ "$#" -gt 0 ]; do
 		--out) out_host=$2; shift 2 ;;
 		--prebuilt) prebuilt_host=$2; shift 2 ;;
 		--proxy) proxy=$2; forward_args+=(--proxy "$2"); shift 2 ;;
+		--rootfs-only) rootfs_only=1; shift ;;
 		--native) shift ;;
 		*) forward_args+=("$1"); shift ;;
 	esac
@@ -110,6 +112,14 @@ if [ -n "$proxy" ]; then
 	run_args+=(-e "NO_PROXY=$no_proxy" -e "no_proxy=$no_proxy")
 fi
 
+if [ "$rootfs_only" -eq 1 ]; then
+	container_command=(/workspace/builder/scripts/build-rootfs.sh)
+else
+	container_command=(/workspace/builder/build.sh --native \
+		--workspace /workspace --out "$out_container" \
+		"${forward_args[@]}")
+fi
+
 exec "$runtime" run "${run_args[@]}" \
 	-e MEOWARCH_IN_TOOLCHAIN=1 \
 	-e MEOWARCH_WORKSPACE=/workspace \
@@ -119,6 +129,4 @@ exec "$runtime" run "${run_args[@]}" \
 	-v "$workspace:/workspace" \
 	-w /workspace \
 	"$image" \
-	/workspace/builder/build.sh --native \
-	--workspace /workspace --out "$out_container" \
-	"${forward_args[@]}"
+	"${container_command[@]}"

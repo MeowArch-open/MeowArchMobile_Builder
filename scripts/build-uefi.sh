@@ -8,6 +8,8 @@ uefi="$workspace/uefi/Project_Mu"
 [ -f "$uefi/build_uefi.py" ] || { echo "missing Project Mu checkout: $uefi" >&2; exit 1; }
 mkdir -p "$out/uefi"
 
+export CLANGPDB_AARCH64_PREFIX="${CLANGPDB_AARCH64_PREFIX:-${CROSS_COMPILE:-aarch64-linux-gnu-}}"
+
 if [ -f "$uefi/pip-requirements.txt" ]; then
 	python3 -m pip install --disable-pip-version-check --break-system-packages \
 		-r "$uefi/pip-requirements.txt"

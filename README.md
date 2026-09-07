@@ -17,23 +17,23 @@ out/zorn/
 
 ## Toolchain policy
 
-`build.sh` uses `toolchain/run.sh` by default. That builds/runs a pinned Arch
-Linux ARM container (`agners/archlinuxarm`, ARM64 digest) described by
-`toolchain/Containerfile`, so the host's compiler,
-pacman, dtc, mkfs, GRUB and Python packages are not used as the build toolchain.
-The only host dependency is a container runtime (`podman` or `docker`) capable
-of running an ARM64 container. On an x86 Docker host, the wrapper automatically
-registers `qemu-aarch64` through `tonistiigi/binfmt` using a privileged helper
-container. Set `MEOWARCH_AUTO_BINFMT=0` to disable that behavior, or set
-`MEOWARCH_TOOLCHAIN_IMAGE`/`MEOWARCH_BASE_IMAGE` to use local image mirrors.
+Kernel, UEFI, DTB and ESP are host-cross stages. `toolchain/fetch.sh` obtains
+the pinned x86_64 toolchain bundle from `MeowArchMobile_Toolchain` and exposes
+Clang/LLD, AArch64 GCC/binutils/glibc, dtc, GRUB, filesystem tools and the UEFI
+Python build dependencies. They do not run through an ARM container.
+
+Only the rootfs/AUR stage uses the ARM64 Arch container, because package build
+scripts may execute target binaries. On an x86 Docker host, the wrapper
+registers `qemu-aarch64` through `tonistiigi/binfmt` when needed.
 
 Proxy traffic uses the normal Docker bridge network by default. Pass the host's
 LAN address in `--proxy`; do not use `127.0.0.1` unless the proxy is reachable
 from the container namespace. Set `MEOWARCH_PROXY_HOST_NETWORK=1` only when the
 host-network mode is known to work with the local Docker setup.
 
-For an already prepared Arch ARM build environment, `--native` skips the
-container wrapper. This is an explicit escape hatch, not the default.
+For an already prepared AArch64 build environment, `--native` skips the
+host-toolchain fetch and container wrapper. This is an explicit escape hatch,
+not the default.
 
 ## Build
 

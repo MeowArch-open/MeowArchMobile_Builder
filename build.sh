@@ -54,14 +54,23 @@ export MEOWARCH_PREBUILT="$prebuilt"
 export MEOWARCH_PROXY="$proxy"
 
 if [ "${MEOWARCH_IN_TOOLCHAIN:-0}" != 1 ] && [ "$native" -eq 0 ]; then
-	args=(--jobs "$jobs")
-	[ -n "$prebuilt" ] && args+=(--prebuilt "$prebuilt")
-	[ -n "$proxy" ] && args+=(--proxy "$proxy")
-	[ "$skip_kernel" -eq 1 ] && args+=(--skip-kernel)
-	[ "$skip_uefi" -eq 1 ] && args+=(--skip-uefi)
-	[ "$skip_rootfs" -eq 1 ] && args+=(--skip-rootfs)
-	[ "$skip_esp" -eq 1 ] && args+=(--skip-esp)
-	exec "$builder_dir/toolchain/run.sh" "${args[@]}"
+	[ -x "$workspace/toolchain/fetch.sh" ] || { echo "missing host toolchain project: $workspace/toolchain" >&2; exit 1; }
+	toolchain_root="$out/work/host-toolchain"
+	if [ ! -f "$toolchain_root/env.sh" ]; then
+		MEOWARCH_PROXY="$proxy" "$workspace/toolchain/fetch.sh" --root "$toolchain_root"
+	fi
+	# shellcheck disable=SC1091
+	. "$toolchain_root/env.sh"
+
+	if [ "$skip_kernel" -eq 0 ]; then "$builder_dir/scripts/build-kernel.sh"; fi
+	if [ "$skip_uefi" -eq 0 ]; then "$builder_dir/scripts/build-uefi.sh"; fi
+	if [ "$skip_rootfs" -eq 0 ]; then
+		"$builder_dir/toolchain/run.sh" --rootfs-only
+	fi
+	if [ "$skip_esp" -eq 0 ]; then "$builder_dir/scripts/build-esp.sh"; fi
+	printf '%s\n' "builder complete: $out"
+	find "$out" -maxdepth 2 -type f -printf '%P %s bytes\n' | sort
+	exit 0
 fi
 
 case "$(uname -m)" in
