@@ -22,7 +22,7 @@ restore_host_ownership() {
 trap restore_host_ownership EXIT
 
 [ -d "$common" ] || { echo "missing common_rootfs: $common" >&2; exit 1; }
-mkdir -p "$out/rootfs" "$out/work" "$aur_out" "$artifacts"
+mkdir -p "$out/rootfs" "$out/work" "$aur_out" "$aur_work" "$artifacts"
 
 if [ ! -f "$aur_out/.complete" ] || [ "${MEOWARCH_REBUILD_AUR:-0}" = 1 ]; then
 	if [ "$(id -u)" -eq 0 ]; then
