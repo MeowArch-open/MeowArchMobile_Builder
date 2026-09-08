@@ -15,6 +15,26 @@ if [ -f "$uefi/pip-requirements.txt" ]; then
 		-r "$uefi/pip-requirements.txt"
 fi
 
+# Project Mu's mu_nasm NuGet restore cannot execute on Linux ARM64 even though
+# the package has a Linux-ARM-64 payload. Native builds already provide the
+# matching NASM tools, so publish them through the extdep contract before
+# stuart_setup verifies dependencies.
+case "$(uname -m)" in
+	aarch64|arm64)
+		descriptor="$uefi/Mu_Basecore/BaseTools/Bin/nasm_ext_dep.yaml"
+		if [ -f "$descriptor" ]; then
+			version=$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$descriptor")
+			[ -n "$version" ] || { echo "cannot read mu_nasm version: $descriptor" >&2; exit 1; }
+			nasm_extdep="${descriptor%/*}/mu_nasm_extdep"
+			install -D -m 0755 "$(command -v nasm)" "$nasm_extdep/Linux-ARM-64/nasm"
+			if command -v ndisasm >/dev/null 2>&1; then
+				install -D -m 0755 "$(command -v ndisasm)" "$nasm_extdep/Linux-ARM-64/ndisasm"
+			fi
+			printf 'version: "%s"\n' "$version" >"$nasm_extdep/extdep_state.yaml"
+		fi
+		;;
+esac
+
 pushd "$uefi" >/dev/null
 python3 build_uefi.py -d zorn -m 0 -c
 python3 build_uefi.py -d zorn -m 1
