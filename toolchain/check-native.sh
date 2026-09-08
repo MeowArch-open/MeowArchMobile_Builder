@@ -7,9 +7,9 @@ case "$(uname -m)" in
 esac
 
 required=(
-	bc bison clang cmake cpio curl dtc flex gcc git gzip ld.lld make meson
-	mformat mkfs.ext4 nasm ninja patch perl pip3 python3 rsync sha256sum tar
-	unzip zstd
+	bc bison clang cmake cpio curl dtc flex gcc git gzip ld.lld llvm-nm
+	llvm-objcopy llvm-readelf make meson mformat mkfs.ext4 nasm ninja patch
+	perl pip3 python3 rsync sha256sum tar unzip zstd
 )
 missing=()
 for command in "${required[@]}"; do
