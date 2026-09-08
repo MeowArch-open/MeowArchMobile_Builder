@@ -9,6 +9,7 @@ cross_compile=${CROSS_COMPILE:-aarch64-linux-gnu-}
 kernel_src="$workspace/kernel"
 kernel_work="$out/work/kernel"
 artifacts="$out/artifacts"
+public_no_modem=${MEOWARCH_PUBLIC_NO_MODEM:-0}
 
 mkdir -p "$out/kernel" "$out/work" "$artifacts/usr"
 
@@ -31,7 +32,9 @@ copy_kernel_sources display
 copy_kernel_sources audio
 copy_kernel_sources touch
 
-for component in display audio touch modem; do
+components=(display audio touch)
+[ "$public_no_modem" -eq 0 ] && components+=(modem)
+for component in "${components[@]}"; do
 	patch_dir="$workspace/$component/patches"
 	[ -d "$patch_dir" ] || continue
 	while IFS= read -r -d '' patch; do
@@ -58,7 +61,7 @@ make -C "$kernel_work" ARCH=arm64 LLVM=1 CROSS_COMPILE="$cross_compile" \
 
 qcomtee_src="$workspace/modem/source/qcomtee-oot"
 qcomtee_work="$out/work/qcomtee-oot"
-if [ -d "$qcomtee_src" ]; then
+if [ "$public_no_modem" -eq 0 ] && [ -d "$qcomtee_src" ]; then
 	if [ ! -e "$qcomtee_work/Makefile" ]; then
 		mkdir -p "$qcomtee_work"
 		cp -a "$qcomtee_src"/. "$qcomtee_work/"

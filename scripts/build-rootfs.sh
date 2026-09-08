@@ -12,6 +12,7 @@ artifacts="$out/artifacts"
 protected_package_dir=${MEOWARCH_PROTECTED_PACKAGE_DIR:-$workspace/protected-pkgs}
 protected_package_repo="$workspace/protected_packages"
 compat_package_dir=${MEOWARCH_COMPAT_PACKAGE_DIR:-$workspace/compat-pkgs}
+public_no_modem=${MEOWARCH_PUBLIC_NO_MODEM:-0}
 
 restore_host_ownership() {
 	if [ "$(id -u)" -eq 0 ] && [ -n "${MEOWARCH_HOST_UID:-}" ] && [ -n "${MEOWARCH_HOST_GID:-}" ]; then
@@ -67,22 +68,27 @@ fi
 if [ -d "$compat_package_dir" ]; then
 	rootfs_args+=(--compat-package-dir "$compat_package_dir")
 fi
+[ "$public_no_modem" -eq 1 ] && rootfs_args+=(--public-no-modem)
 "$common/scripts/build-rootfs.sh" "${rootfs_args[@]}"
 
 required=(
 	/usr/local/sbin/fastrpc-audiopd
 	/usr/local/sbin/hostapd
 	/usr/local/sbin/hostapd_cli
-	/usr/local/sbin/pd-mapper
-	/usr/local/sbin/rmtfs
-	/usr/local/sbin/tqftpserv
-	/usr/local/sbin/zorn-diag
-	/usr/local/sbin/zorn-efs
-	/usr/local/sbin/zorn-minkd
-	/usr/local/sbin/zorn-qmiprobe
-	/usr/local/sbin/zorn-wds
-	/usr/local/lib/zorn/qcomtee.ko
 )
+if [ "$public_no_modem" -eq 0 ]; then
+	required+=(
+		/usr/local/sbin/pd-mapper
+		/usr/local/sbin/rmtfs
+		/usr/local/sbin/tqftpserv
+		/usr/local/sbin/zorn-diag
+		/usr/local/sbin/zorn-efs
+		/usr/local/sbin/zorn-minkd
+		/usr/local/sbin/zorn-qmiprobe
+		/usr/local/sbin/zorn-wds
+		/usr/local/lib/zorn/qcomtee.ko
+	)
+fi
 missing=()
 for path in "${required[@]}"; do
 	[ -e "$rootfs$path" ] || missing+=("$path")

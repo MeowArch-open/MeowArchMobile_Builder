@@ -5,6 +5,7 @@ workspace=${MEOWARCH_WORKSPACE:?}
 artifacts=${MEOWARCH_USERSPACE_ARTIFACTS:?}
 jobs=${MEOWARCH_JOBS:-1}
 work=${MEOWARCH_OUT:-$workspace/out/zorn}/work/userspace
+public_no_modem=${MEOWARCH_PUBLIC_NO_MODEM:-0}
 mkdir -p "$artifacts/usr/local/sbin" "$artifacts/usr/local/lib/zorn" "$work"
 
 have() { [ -e "$artifacts/usr/local/sbin/$1" ]; }
@@ -138,19 +139,21 @@ build_fastrpc() {
   install_bin "$work/fastrpc-audiopd" fastrpc-audiopd
 }
 
-if ! have pd-mapper || ! have tqftpserv || ! have rmtfs || \
-   ! have zorn-qmiprobe || ! have zorn-wds || ! have zorn-minkd; then
-  build_qrtr
-fi
 build_fastrpc
 build_hostapd
-build_pd_mapper
-build_tqftpserv
-build_rmtfs
-build_zorn_qrtr
-build_zorn_wds
-build_c_simple zorn-diag "$workspace/modem/services/zorn/src/zorn-diag.c"
-build_c_simple zorn-efs "$workspace/modem/services/zorn/src/zorn-efs.c"
-build_zorn_minkd
+if [ "$public_no_modem" -eq 0 ]; then
+  if ! have pd-mapper || ! have tqftpserv || ! have rmtfs || \
+     ! have zorn-qmiprobe || ! have zorn-wds || ! have zorn-minkd; then
+    build_qrtr
+  fi
+  build_pd_mapper
+  build_tqftpserv
+  build_rmtfs
+  build_zorn_qrtr
+  build_zorn_wds
+  build_c_simple zorn-diag "$workspace/modem/services/zorn/src/zorn-diag.c"
+  build_c_simple zorn-efs "$workspace/modem/services/zorn/src/zorn-efs.c"
+  build_zorn_minkd
+fi
 
 printf '%s\n' "userspace artifacts ready: $artifacts/usr/local/sbin"

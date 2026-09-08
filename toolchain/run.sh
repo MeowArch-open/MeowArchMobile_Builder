@@ -13,6 +13,7 @@ no_proxy=${MEOWARCH_NO_PROXY:-}
 proxy_host_network=${MEOWARCH_PROXY_HOST_NETWORK:-0}
 forward_args=()
 rootfs_only=0
+public_no_modem=${MEOWARCH_PUBLIC_NO_MODEM:-0}
 
 while [ "$#" -gt 0 ]; do
 	case "$1" in
@@ -21,6 +22,7 @@ while [ "$#" -gt 0 ]; do
 		--prebuilt) prebuilt_host=$2; shift 2 ;;
 		--proxy) proxy=$2; forward_args+=(--proxy "$2"); shift 2 ;;
 		--rootfs-only) rootfs_only=1; shift ;;
+		--public-no-modem) public_no_modem=1; forward_args+=(--public-no-modem); shift ;;
 		--native) shift ;;
 		*) forward_args+=("$1"); shift ;;
 	esac
@@ -73,7 +75,8 @@ if [ -z "$runtime" ]; then
 	fi
 fi
 
-if [ "$platform" = linux/arm64 ] && [ "${MEOWARCH_AUTO_BINFMT:-1}" = 1 ]; then
+host_arch=$(uname -m)
+if [ "$platform" = linux/arm64 ] && [ "$host_arch" != aarch64 ] && [ "$host_arch" != arm64 ] && [ "${MEOWARCH_AUTO_BINFMT:-1}" = 1 ]; then
 	if ! "$runtime" run --rm --platform "$platform" "$base_image" /bin/true >/dev/null 2>&1; then
 		echo "warning: ARM64 probe failed; registering qemu-aarch64 through tonistiigi/binfmt" >&2
 		"$runtime" run --privileged --rm tonistiigi/binfmt:latest --install arm64
@@ -112,7 +115,10 @@ if [ "${MEOWARCH_REBUILD_IMAGE:-0}" = 1 ] || {
 		-t "$image" "$builder_dir/toolchain"
 fi
 
-run_args=(--rm -it --platform "$platform")
+run_args=(--rm --platform "$platform")
+if [ -t 0 ] && [ -t 1 ] && [ "${CI:-}" != true ]; then
+	run_args+=(-it)
+fi
 if [ -n "$proxy" ]; then
 	[ "$proxy_host_network" = 1 ] && run_args+=(--network host)
 	for name in HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy; do
@@ -136,6 +142,7 @@ exec "$runtime" run "${run_args[@]}" \
 	-e MEOWARCH_WORKSPACE=/workspace \
 	-e MEOWARCH_OUT="$out_container" \
 	-e MEOWARCH_PREBUILT="${prebuilt_container:-}" \
+	-e MEOWARCH_PUBLIC_NO_MODEM="$public_no_modem" \
 	"${extra_mounts[@]}" \
 	-v "$workspace:/workspace" \
 	-w /workspace \

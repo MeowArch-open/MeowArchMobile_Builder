@@ -50,9 +50,18 @@ LAN address in `--proxy`; do not use `127.0.0.1` unless the proxy is reachable
 from the container namespace. Set `MEOWARCH_PROXY_HOST_NETWORK=1` only when the
 host-network mode is known to work with the local Docker setup.
 
-For an already prepared AArch64 build environment, `--native` skips the
-host-toolchain fetch and container wrapper. This is an explicit escape hatch,
-not the default.
+For an already prepared AArch64 build environment, `--native` uses the host
+for Kernel, UEFI, DTB and ESP and runs only the rootfs/AUR stage in the ARM64
+Arch container. On Ubuntu 24.04 ARM64, install the pinned class of host tools
+with `sudo builder/toolchain/install-native-ubuntu.sh`; `build.sh` checks them
+before starting. The container runs natively on ARM and does not register
+binfmt/QEMU.
+
+For redistributable automation, `--public-no-modem` builds an explicit public
+edition without checking out or probing the private Modem project. Modem
+patches, firmware, services, qcomtee and Modem-derived userspace are omitted;
+Common, Display, Audio, Touch and Wi-Fi inputs remain enabled. Full builds keep
+the existing private Modem requirements.
 
 ## Build
 
@@ -81,7 +90,8 @@ Useful options:
                        Docker build and rootfs container network
 --clean                remove Builder output/cache and Project Mu generated files,
                        then rebuild
---native              do not enter the bundled toolchain container
+--native              use an already prepared ARM64 host for host build stages
+--public-no-modem     omit all private Modem inputs for a public release
 ```
 
 If `prebuilt/` exists at the manifest workspace root, it is used

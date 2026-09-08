@@ -8,6 +8,7 @@ jobs=${MEOWARCH_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}
 prebuilt=
 proxy=${MEOWARCH_PROXY:-}
 native=0
+public_no_modem=${MEOWARCH_PUBLIC_NO_MODEM:-0}
 skip_kernel=0
 skip_uefi=0
 skip_rootfs=0
@@ -28,7 +29,8 @@ usage: builder/build.sh [options]
   --skip-rootfs     reuse the existing rootfs output
   --skip-esp        reuse the existing ESP output
   --clean           remove all Builder outputs, then rebuild
-  --native          do not enter the bundled toolchain container
+  --native          use host tools for Kernel/UEFI/ESP
+  --public-no-modem build a redistributable image without private Modem inputs
 EOF
 }
 
@@ -45,6 +47,7 @@ while [ "$#" -gt 0 ]; do
 		--skip-esp) skip_esp=1; shift ;;
 		--clean) clean=1; shift ;;
 		--native) native=1; shift ;;
+		--public-no-modem) public_no_modem=1; shift ;;
 		-h|--help) usage; exit 0 ;;
 		*) echo "unknown option: $1" >&2; usage >&2; exit 2 ;;
 	esac
@@ -100,6 +103,7 @@ export MEOWARCH_OUT="$out"
 export MEOWARCH_JOBS="$jobs"
 export MEOWARCH_PREBUILT="$prebuilt"
 export MEOWARCH_PROXY="$proxy"
+export MEOWARCH_PUBLIC_NO_MODEM="$public_no_modem"
 if [ -n "$proxy" ]; then
 	export HTTP_PROXY="$proxy" HTTPS_PROXY="$proxy" ALL_PROXY="$proxy"
 	export http_proxy="$proxy" https_proxy="$proxy" all_proxy="$proxy"
@@ -130,6 +134,10 @@ case "$(uname -m)" in
 	*) echo "builder requires an aarch64 toolchain environment; got $(uname -m)" >&2; exit 1 ;;
 esac
 
+if [ "${MEOWARCH_IN_TOOLCHAIN:-0}" != 1 ] && [ "$native" -eq 1 ]; then
+	"$builder_dir/toolchain/check-native.sh"
+fi
+
 [ -d "$workspace/kernel" ] || { echo "missing manifest project: $workspace/kernel" >&2; exit 1; }
 [ -d "$workspace/common_rootfs" ] || { echo "missing manifest project: $workspace/common_rootfs" >&2; exit 1; }
 mkdir -p "$out"
@@ -147,7 +155,13 @@ if [ "$skip_uefi" -eq 0 ]; then
 	"$builder_dir/scripts/build-uefi.sh"
 fi
 if [ "$skip_rootfs" -eq 0 ]; then
-	"$builder_dir/scripts/build-rootfs.sh"
+	if [ "${MEOWARCH_IN_TOOLCHAIN:-0}" = 1 ]; then
+		"$builder_dir/scripts/build-rootfs.sh"
+	else
+		rootfs_args=(--rootfs-only)
+		[ "$public_no_modem" -eq 1 ] && rootfs_args+=(--public-no-modem)
+		"$builder_dir/toolchain/run.sh" "${rootfs_args[@]}"
+	fi
 fi
 if [ "$skip_esp" -eq 0 ]; then
 	"$builder_dir/scripts/build-esp.sh"
