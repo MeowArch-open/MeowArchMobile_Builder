@@ -140,7 +140,9 @@ fi
 
 [ -d "$workspace/kernel" ] || { echo "missing manifest project: $workspace/kernel" >&2; exit 1; }
 [ -d "$workspace/common_rootfs" ] || { echo "missing manifest project: $workspace/common_rootfs" >&2; exit 1; }
-mkdir -p "$out"
+# Reserve the later native stage's output before the rootfs container creates
+# root-owned siblings in the bind-mounted output directory.
+mkdir -p "$out" "$out/esp"
 
 if [ "${MEOWARCH_IN_TOOLCHAIN:-0}" = 1 ]; then
 	for project in kernel common display audio touch modem wifi common_rootfs builder uefi/Project_Mu; do
