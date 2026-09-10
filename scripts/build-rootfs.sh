@@ -16,7 +16,9 @@ public_no_modem=${MEOWARCH_PUBLIC_NO_MODEM:-0}
 
 restore_host_ownership() {
 	if [ "$(id -u)" -eq 0 ] && [ -n "${MEOWARCH_HOST_UID:-}" ] && [ -n "${MEOWARCH_HOST_GID:-}" ]; then
-		chown -R "$MEOWARCH_HOST_UID:$MEOWARCH_HOST_GID" "$out" 2>/dev/null || true
+		# The host only needs ownership of the output root to create later stage
+		# directories. Do not rewrite ownership inside the assembled rootfs.
+		chown "$MEOWARCH_HOST_UID:$MEOWARCH_HOST_GID" "$out"
 	fi
 }
 trap restore_host_ownership EXIT
