@@ -28,6 +28,7 @@ copy_kernel_sources() {
 	done < <(find "$source" -type f -print0)
 }
 
+copy_kernel_sources power
 copy_kernel_sources display
 copy_kernel_sources audio
 copy_kernel_sources touch

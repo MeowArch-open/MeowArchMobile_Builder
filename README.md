@@ -101,9 +101,10 @@ build input and is not part of the public source repositories.
 ## Build stages
 
 1. `build-kernel.sh` creates a detached worktree from the locked Kernel
-   project, copies each subsystem's new kernel source, applies the subsystem
-   patches, merges `config/zorn/kernel.fragment`, builds `Image` and modules,
-   and builds the qcomtee out-of-tree module.
+   project, copies each subsystem's kernel sources (including the Power driver's
+   SM8650 override), applies the subsystem patches, merges
+   `config/zorn/kernel.fragment`, builds `Image` and modules, and builds the
+   qcomtee out-of-tree module.
 2. `build-uefi.sh` invokes Project Mu for zorn models 0 and 1. The nested UEFI
    projects are supplied by the manifest, not by the broken old submodule URL.
 3. `build-rootfs.sh` first reuses or builds the target userspace daemons from
