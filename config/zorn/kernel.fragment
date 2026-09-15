@@ -25,3 +25,26 @@ CONFIG_NF_TABLES_INET=y
 CONFIG_NF_NAT=y
 CONFIG_NF_NAT_MASQUERADE=y
 CONFIG_NFT_NAT=y
+
+# Qualcomm WCN7850 Bluetooth over UART serdev
+CONFIG_BT=m
+CONFIG_BT_HCIUART=m
+CONFIG_BT_HCIUART_SERDEV=y
+CONFIG_BT_HCIUART_H4=y
+CONFIG_BT_HCIUART_QCA=y
+CONFIG_BT_QCA=m
+CONFIG_SERIAL_DEV_BUS=y
+CONFIG_SERIAL_DEV_CTRL_TTYPORT=y
+CONFIG_RFKILL=y
+
+# LE + the BREDR protocols BlueZ needs for audio/HID/PAN I/O
+CONFIG_BT_LE=y
+CONFIG_BT_RFCOMM=m
+CONFIG_BT_BNEP=m
+
+# WCN7850 BT power path: the serdev child has no enable-gpios on purpose, so
+# hci_qca binds pwrseq-qcom-wcn, which owns the seven PMU rails and the
+# active-high bt-enable line. Kconfig only defaults this to m under ARCH_QCOM;
+# pin it in so a fresh defconfig-based build cannot lose the probe path.
+CONFIG_POWER_SEQUENCING=y
+CONFIG_POWER_SEQUENCING_QCOM_WCN=y
