@@ -16,8 +16,8 @@ menuentry "0: recovery (simplefb, msm blacklisted)" {
     boot
 }
 
-menuentry "1: normal (real DPU + o11 panel, audio disabled)" {
-    devicetree /dtb/zorn-display-noaudio.dtb
+menuentry "1: normal (zorn-cam: DPU+panel, OV08D10 ultra-wide, iris HW codec, i2c-hub sensors)" {
+    devicetree /dtb/zorn-cam.dtb
     linux /Image $common deferred_probe_timeout=30
     boot
 }
