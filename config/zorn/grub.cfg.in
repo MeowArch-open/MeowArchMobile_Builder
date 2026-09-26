@@ -1,5 +1,5 @@
 set timeout=10
-set default=3
+set default=1
 set pager=0
 
 insmod part_gpt
@@ -10,25 +10,13 @@ search --no-floppy --fs-uuid --set=root @ESP_UUID@
 
 set common="root=PARTUUID=@ROOT_PARTUUID@ rw rootwait console=tty1 earlycon=efifb loglevel=4 log_buf_len=8M clk_ignore_unused pd_ignore_unused regulator_ignore_unused panic=0"
 
-menuentry "0: simplefb, nothing experimental" {
+menuentry "0: recovery (simplefb, msm blacklisted)" {
     devicetree /dtb/zorn.dtb
     linux /Image $common modprobe.blacklist=msm
     boot
 }
 
-menuentry "1: real DPU + o11 panel (drm debug)" {
-    devicetree /dtb/zorn-display.dtb
-    linux /Image $common drm.debug=0x06 deferred_probe_timeout=30
-    boot
-}
-
-menuentry "2: real DPU + o11 panel (quiet)" {
-    devicetree /dtb/zorn-display.dtb
-    linux /Image $common deferred_probe_timeout=30
-    boot
-}
-
-menuentry "3: real DPU, audio disabled (ADSP crash isolation)" {
+menuentry "1: normal (real DPU + o11 panel, audio disabled)" {
     devicetree /dtb/zorn-display-noaudio.dtb
     linux /Image $common deferred_probe_timeout=30
     boot

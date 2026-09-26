@@ -26,16 +26,15 @@ compile_dtb() {
 	dtc -q -I dts -O dtb -o "$dtb_out/$output" "$source"
 }
 
+# The shipping ESP carries exactly the two device trees the recovery+normal
+# GRUB menu references: the base tree for recovery (simplefb, msm blacklisted)
+# and the display tree with the ADSP /sound node disabled for normal boot.
+# The per-variant audio/display/tdm/cam/iris test trees under audio/dts/ are
+# bring-up experiments; no recovery or normal entry selects them, so they are
+# deliberately not compiled into the image.
 compile_dtb "$workspace/common_rootfs/profiles/zorn/boot/zorn.dts" zorn.dtb
-compile_dtb "$workspace/audio/dts/zorn-audio-micb.dts" zorn-display.dtb
 compile_dtb "$workspace/audio/dts/zorn-audio-micb.dts" zorn-display-noaudio.dtb
 fdtput -t s "$dtb_out/zorn-display-noaudio.dtb" /sound status disabled
-
-for source in "$workspace"/audio/dts/*.dts; do
-	[ -f "$source" ] || continue
-	name=$(basename "$source" .dts)
-	dtc -q -I dts -O dtb -o "$dtb_out/$name.dtb" "$source"
-done
 
 grub_cfg="$esp_out/grub.cfg"
 sed \
