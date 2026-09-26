@@ -177,9 +177,41 @@ build_zorn_charger_auth() {
   install_bin "$work/zorn-charger-auth" zorn-charger-auth
 }
 
+# hexagonrpcd is the FastRPC HexagonFS file server for the ADSP sensor PD (the
+# mainline replacement for Android sscrpd). The zorn fork adds a HexagonFS write
+# path so the sensor PD can regenerate parsed_file_list.csv when it rebuilds the
+# sensor registry; without it the i2c-hub / fusion sensors never register.
+build_hexagonrpcd() {
+  have hexagonrpcd && return 0
+  local source="$workspace/hexagonrpc"
+  local build="$work/hexagonrpc"
+  local shim="$work/hexagonrpc-uapi"
+  local fastrpc_h="$workspace/kernel/include/uapi/misc/fastrpc.h"
+  [ -f "$source/meson.build" ] || { echo "missing hexagonrpc source: $source" >&2; return 1; }
+  [ -f "$fastrpc_h" ] || { echo "missing kernel fastrpc uapi header: $fastrpc_h (sync the kernel project)" >&2; return 1; }
+  # hexagonrpcd includes <misc/fastrpc.h>; stage ONLY that one header from the
+  # device kernel tree so the FASTRPC ioctl numbers -- in particular
+  # FASTRPC_IOCTL_INIT_ATTACH_SNS, the ioctl the -s flag uses to attach the
+  # sensor PD -- match the running remoteproc, without leaking the rest of the
+  # kernel uapi onto the include path where it could shadow libc headers.
+  mkdir -p "$shim/misc"
+  install -m 0644 "$fastrpc_h" "$shim/misc/fastrpc.h"
+  if [ ! -f "$build/build.ninja" ]; then
+    # verbose to match the device's running hexagonrpcd-v. NB: meson configures
+    # the tools/ and tests/ subdirs at setup time (they want host json-c); we
+    # only *compile* the daemon target below, but json-c must be present to
+    # configure. That matches the established zorn build host.
+    meson setup "$build" "$source" --buildtype=release \
+      -Dhexagonrpcd_verbose=true -Dc_args="-I$shim"
+  fi
+  meson compile -C "$build" -j "$jobs" hexagonrpcd/hexagonrpcd
+  install_bin "$build/hexagonrpcd/hexagonrpcd" hexagonrpcd
+}
+
 build_fastrpc
 build_zorn_charger_auth
 build_hostapd
+build_hexagonrpcd
 if [ "$public_no_modem" -eq 0 ]; then
   if ! have pd-mapper || ! have tqftpserv || ! have rmtfs || \
      ! have zorn-qmiprobe || ! have zorn-wds || ! have zorn-minkd; then
