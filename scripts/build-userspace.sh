@@ -197,13 +197,16 @@ build_hexagonrpcd() {
   mkdir -p "$shim/misc"
   install -m 0644 "$fastrpc_h" "$shim/misc/fastrpc.h"
   if [ ! -f "$build/build.ninja" ]; then
-    # verbose to match the device's running hexagonrpcd-v. NB: meson configures
-    # the tools/ and tests/ subdirs at setup time (they want host json-c); we
-    # only *compile* the daemon target below, but json-c must be present to
-    # configure. That matches the established zorn build host.
+    # verbose to match the device's running hexagonrpcd-v. The daemon links only
+    # the in-tree libhexagonrpc (no external deps) -- json-c is optional
+    # (required:false) and used solely by the host-side sscregistrygen tool,
+    # which zorn does not use (the sensor PD regenerates the registry at runtime
+    # via the fork's HexagonFS write path), so setup and the rootfs are json-c-free.
     meson setup "$build" "$source" --buildtype=release \
       -Dhexagonrpcd_verbose=true -Dc_args="-I$shim"
   fi
+  # Only the daemon target: chrecd and the (optional) sscregistrygen/tests are
+  # neither built nor shipped.
   meson compile -C "$build" -j "$jobs" hexagonrpcd/hexagonrpcd
   install_bin "$build/hexagonrpcd/hexagonrpcd" hexagonrpcd
 }
