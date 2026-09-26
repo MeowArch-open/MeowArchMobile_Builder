@@ -26,8 +26,10 @@ compile_dtb() {
 	dtc -q -I dts -O dtb -o "$dtb_out/$output" "$source"
 }
 
-compile_dtb "$workspace/common/dts/zorn.dts" zorn.dtb
+compile_dtb "$workspace/common_rootfs/profiles/zorn/boot/zorn.dts" zorn.dtb
 compile_dtb "$workspace/audio/dts/zorn-audio-micb.dts" zorn-display.dtb
+compile_dtb "$workspace/audio/dts/zorn-audio-micb.dts" zorn-display-noaudio.dtb
+fdtput -t s "$dtb_out/zorn-display-noaudio.dtb" /sound status disabled
 
 for source in "$workspace"/audio/dts/*.dts; do
 	[ -f "$source" ] || continue

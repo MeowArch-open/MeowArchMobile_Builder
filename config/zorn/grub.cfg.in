@@ -1,5 +1,5 @@
 set timeout=10
-set default=2
+set default=3
 set pager=0
 
 insmod part_gpt
@@ -24,6 +24,12 @@ menuentry "1: real DPU + o11 panel (drm debug)" {
 
 menuentry "2: real DPU + o11 panel (quiet)" {
     devicetree /dtb/zorn-display.dtb
+    linux /Image $common deferred_probe_timeout=30
+    boot
+}
+
+menuentry "3: real DPU, audio disabled (ADSP crash isolation)" {
+    devicetree /dtb/zorn-display-noaudio.dtb
     linux /Image $common deferred_probe_timeout=30
     boot
 }
