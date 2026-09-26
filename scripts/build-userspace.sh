@@ -102,6 +102,28 @@ build_zorn_wds() {
   install_bin "$work/zorn-wds" zorn-wds
 }
 
+build_zorn_rat() {
+  have zorn-rat && return 0
+  local source="$workspace/modem/services/zorn/src/zorn-rat.c"
+  local flags
+  [ -f "$source" ] || { echo "missing zorn-rat source: $source" >&2; return 1; }
+  flags=$(pkg-config --cflags --libs qmi-glib qrtr-glib glib-2.0 gio-2.0 gobject-2.0)
+  cc -O2 -Wall -D_GNU_SOURCE $flags "$source" -o "$work/zorn-rat"
+  install_bin "$work/zorn-rat" zorn-rat
+}
+
+# qrtr-lookup ships in the same qrtr meson project (executable(...) install:true)
+# that already produces libqrtr.a; build_qrtr installs it into the sysroot but
+# not the artifact tree, so pull it into /usr/local/sbin explicitly.
+build_qrtr_lookup() {
+  have qrtr-lookup && return 0
+  build_qrtr
+  local bin="$work/qrtr-build/src/qrtr-lookup"
+  [ -f "$bin" ] || bin="$work/sysroot/usr/bin/qrtr-lookup"
+  [ -f "$bin" ] || { echo "missing qrtr-lookup build output: $bin" >&2; return 1; }
+  install_bin "$bin" qrtr-lookup
+}
+
 build_zorn_minkd() {
   have zorn-minkd && return 0
   local source="$workspace/modem/services/zorn/src/zorn-minkd.c"
@@ -168,6 +190,9 @@ if [ "$public_no_modem" -eq 0 ]; then
   build_rmtfs
   build_zorn_qrtr
   build_zorn_wds
+  build_zorn_rat
+  build_qrtr_lookup
+  build_c_simple zorn-rmnet "$workspace/modem/services/zorn/src/zorn-rmnet.c"
   build_c_simple zorn-diag "$workspace/modem/services/zorn/src/zorn-diag.c"
   build_c_simple zorn-efs "$workspace/modem/services/zorn/src/zorn-efs.c"
   build_zorn_minkd

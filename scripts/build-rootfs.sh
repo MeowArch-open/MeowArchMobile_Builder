@@ -93,6 +93,9 @@ if [ "$public_no_modem" -eq 0 ]; then
 		/usr/local/sbin/zorn-minkd
 		/usr/local/sbin/zorn-qmiprobe
 		/usr/local/sbin/zorn-wds
+		/usr/local/sbin/zorn-rat
+		/usr/local/sbin/zorn-rmnet
+		/usr/local/sbin/qrtr-lookup
 		/usr/local/lib/zorn/qcomtee.ko
 	)
 fi

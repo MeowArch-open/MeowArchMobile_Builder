@@ -12,6 +12,13 @@ CONFIG_DRM_MSM=m
 CONFIG_DRM_MSM_DPU=y
 CONFIG_DRM_MSM_DSI=y
 CONFIG_SM_DISPCC_8550=m
+# Camera + video clock controllers. camcc-sm8650 clocks the CSID/CSIPHY/CCI
+# camera power domains; videocc-sm8550 covers sm8650 and drives the iris/venus
+# HW video codec. Pin them so a fresh defconfig-based build cannot drop the
+# iris/camera probe path (iris needs videocc to have a driver, not just a DT
+# status flip, and camcc is what brings the camera CC domains up).
+CONFIG_SM_CAMCC_8650=m
+CONFIG_SM_VIDEOCC_8550=m
 CONFIG_DRM_PANEL_XIAOMI_O11_42_02_0A=m
 CONFIG_TOUCHSCREEN_FOCALTECH_SPI=m
 CONFIG_SND_SOC_SIA91XX=m
