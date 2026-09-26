@@ -28,25 +28,40 @@ copy_kernel_sources() {
 	done < <(find "$source" -type f -print0)
 }
 
-copy_kernel_sources power
-copy_kernel_sources display
-copy_kernel_sources audio
-copy_kernel_sources touch
+# The manifest pins the kernel at the fully-baked zorn bring-up tip (branch
+# v7.2.6-meowarch1), which already carries every subsystem's driver work as
+# real commits. The per-component source/kernel overlays and patches/ are the
+# historical mechanism for layering those deltas onto a clean upstream base;
+# they are not regenerated against the current base (the display patch is a
+# mixed-tree snapshot whose dpu_encoder.c hunk no longer applies, and the
+# base/gpio/pinctrl core deltas are not captured at all), so re-applying them
+# on the baked kernel both fails and could not reproduce it anyway. Detect the
+# baked kernel by a driver only the zorn delta adds and skip layering; a
+# genuinely clean base (marker absent) still gets the overlays and patches.
+baked_marker="drivers/gpu/drm/panel/panel-xiaomi-o11-42-02-0a.c"
+if [ -e "$kernel_work/$baked_marker" ]; then
+	echo "kernel worktree already carries the zorn drivers (baked pin); skipping source overlays and patches"
+else
+	copy_kernel_sources power
+	copy_kernel_sources display
+	copy_kernel_sources audio
+	copy_kernel_sources touch
 
-components=(display audio touch)
-[ "$public_no_modem" -eq 0 ] && components+=(modem)
-for component in "${components[@]}"; do
-	patch_dir="$workspace/$component/patches"
-	[ -d "$patch_dir" ] || continue
-	while IFS= read -r -d '' patch; do
-		marker="$kernel_work/.meowarch-$component-$(basename "$patch").applied"
-		if [ ! -e "$marker" ]; then
-			git -C "$kernel_work" apply --check "$patch"
-			git -C "$kernel_work" apply "$patch"
-			touch "$marker"
-		fi
-	done < <(find "$patch_dir" -maxdepth 1 -type f -name '*.patch' -print0 | sort -z)
-done
+	components=(display audio touch)
+	[ "$public_no_modem" -eq 0 ] && components+=(modem)
+	for component in "${components[@]}"; do
+		patch_dir="$workspace/$component/patches"
+		[ -d "$patch_dir" ] || continue
+		while IFS= read -r -d '' patch; do
+			marker="$kernel_work/.meowarch-$component-$(basename "$patch").applied"
+			if [ ! -e "$marker" ]; then
+				git -C "$kernel_work" apply --check "$patch"
+				git -C "$kernel_work" apply "$patch"
+				touch "$marker"
+			fi
+		done < <(find "$patch_dir" -maxdepth 1 -type f -name '*.patch' -print0 | sort -z)
+	done
+fi
 
 if [ ! -e "$kernel_work/.meowarch-configured" ]; then
 	make -C "$kernel_work" ARCH=arm64 LLVM=1 CROSS_COMPILE="$cross_compile" defconfig
