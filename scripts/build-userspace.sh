@@ -139,7 +139,24 @@ build_fastrpc() {
   install_bin "$work/fastrpc-audiopd" fastrpc-audiopd
 }
 
+build_zorn_charger_auth() {
+  local source="$workspace/common/services/charger/src/zorn-charger-auth.c"
+  local compiler=${MEOWARCH_AARCH64_CC:-aarch64-linux-gnu-gcc}
+  local strip=${MEOWARCH_AARCH64_STRIP:-aarch64-linux-gnu-strip}
+  [ -f "$source" ] || { echo "missing zorn-charger-auth source: $source" >&2; return 1; }
+  command -v "$compiler" >/dev/null || { echo "missing AArch64 compiler: $compiler" >&2; return 1; }
+  echo "build userspace: zorn-charger-auth (AArch64, mock-tested; live transport disabled)"
+  "$compiler" -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror \
+    -fstack-protector-strong -D_FORTIFY_SOURCE=3 \
+    "$source" -Wl,-z,relro,-z,now -o "$work/zorn-charger-auth"
+  if command -v "$strip" >/dev/null; then
+    "$strip" --strip-unneeded "$work/zorn-charger-auth"
+  fi
+  install_bin "$work/zorn-charger-auth" zorn-charger-auth
+}
+
 build_fastrpc
+build_zorn_charger_auth
 build_hostapd
 if [ "$public_no_modem" -eq 0 ]; then
   if ! have pd-mapper || ! have tqftpserv || ! have rmtfs || \
